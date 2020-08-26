@@ -101,10 +101,11 @@ class LemmatizationAPI(APIView):
     def decorate_token_data(self, text):
         data = text.data
         nodes = LatticeNode.objects.filter(pk__in=[token["node"] for token in data])
+        node_map = {n.pk: n for n in nodes}
         if self.request.GET.get("vocablist", None) is not None:
             vl = get_object_or_404(VocabularyList, pk=self.request.GET.get("vocablist"))
             for token in data:
-                node = nodes.filter(pk=token["node"]).first()  # does doing this avoid a second trip to the database?
+                node = node_map.get(token["node"])
                 if node is not None:
                     token["inVocabList"] = token["resolved"] and vl.entries.filter(node__in=node.related_nodes()).exists()
                 else:
